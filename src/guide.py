@@ -6,16 +6,24 @@ import numpy as np
 
 
 class Guidance:
-    
+
+
+
     #Initialization function
     def __init__(self):
         #Initialize node
         rospy.init_node('guidance')
 
+        #How often one should calculate new heading
+        self.calcualtion_limit = 3 #not currently used
+
+        self.counter = 0
+        self.K_p = 0.01
+
         #Start publisher for speed 
-        
+        self.heading_ref_pub = rospy.Publish('heading_ref', Float)
         #subscribe to right topics
-        self.condSubscriber = rospy.Subscriber('cond_wps', numpy_msg(Floats),callback=self.calculatePsiSetpoint, queue_size=2)
+        self.condSubscriber = rospy.Subscriber('cond_wps', numpy_msg(Float),callback=self.calculatePsiSetpoint, queue_size=2)
 
 
     #Helping functions
@@ -29,7 +37,7 @@ class Guidance:
         return R
 
 
-    #Callback function
+
     def calculatePsiSetpoint(self, cond_wp):
         """Datastructure of cond_wp is
             [   current_pos_x;
@@ -70,16 +78,15 @@ class Guidance:
         s = epsilon[0] #along track error
         e = epsilon[1] #cross track error
 
+        #Calculating desired psi_d
+        psi_r = np.arctan(self.K_p*e)
+        psi_d = alpha + psi_r 
+        self.heading_ref = psi_d 
 
-        K_p = 1
+    def publish_heading_ref(self):
+        self.heading_ref_pub.publish(self.heading_ref)
 
-
-        self.psi_r = np.arctan(Kp*e)
-
-        self.psi_d = alpha + self.psi_r 
-
-
-
+heading_ref_calculator = Guidance()
 try:
     rospy.spin()
 except KeyboardInterrupt:

@@ -2,33 +2,31 @@
 import numpy as np
 import rospy
 import std_msgs
+import geometry_msgs
 
 
-finish_flag = false 
-wp = np.array()
 
 class ConditionWP:
     def __init__(self):
-        self.wp_list = np.array([])
-        self.
+        self.wp_list = [[0,0]]
+        self.R_treshold = 2
+        self.current_i = 0
 
 
-        self.cond_wp_publish = rospy.Publisher('conditioned_wp', )
+        #Publish to topic cond_wps
+        self.cond_wp_publish = rospy.Publisher('cond_wps', numpy_msg(Floats))
 
-        rospy
+        #Subscriber to waypoints
+        self.wp_subscriber = rospy.Subscriber('wp_list', Float, callback = self.save_gotten_wps, queue_size = 10)
+        #Subscriber for current position
+        self.pos_subscriber = rospy.Subscriber('pos_coord', Point, save_gotten_pos)
 
 
+    def save_gotten_wps(self, wp_input):
+        self.wp_list.append(wp_input)
+    def save_gotten_pos(self, pos_input):
 
-
-
-        #Subscribing to the three filtered ultrasonic sensordata
-        self.ultra_left_sub = rospy.Subscriber("ultrasound/left/filtered", Range, self.store_new_certain_measurement, callback_args="left")
-        self.ultra_center_sub = rospy.Subscriber("ultrasound/center/filtered", Range, self.store_new_certain_measurement, callback_args="center")
-        self.ultra_right_sub = rospy.Subscriber("ultrasound/right/filtered", Range, self.store_new_certain_measurement, callback_args="right")
         
-        #Initializations
-        self.last_certain_measurement = {"left": Range(), "center": Range(), "right": Range()}
-        self.velref = PointStamped()
-        self.velref.header.stamp = rospy.Time.now()
-        self.velref.header.frame_id = "/ultrasound/center"
-        self.velref_measurement_counter = 0 
+        
+
+    
