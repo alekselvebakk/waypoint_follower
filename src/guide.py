@@ -2,6 +2,7 @@
 
 import rospy 
 from rospy.numpy_msg import numpy_msg
+from guidance.msg import Float
 import numpy as np 
 
 
@@ -19,11 +20,12 @@ class Guidance:
 
         self.counter = 0
         self.K_p = 0.01
+        self.heading_ref = 0
 
-        #Start publisher for speed 
-        self.heading_ref_pub = rospy.Publish('heading_ref', Float)
+        #Start publisher for heading_ref 
+        self.heading_ref_pub = rospy.Publisher('heading_ref', Float, queue_size = 10)
         #subscribe to right topics
-        self.condSubscriber = rospy.Subscriber('cond_wps', numpy_msg(Float),callback=self.calculatePsiSetpoint, queue_size=2)
+        self.condSubscriber = rospy.Subscriber('cond_wps', numpy_msg(Float),callback=self.calculateAndPublish, queue_size=2)
 
 
     #Helping functions
@@ -74,7 +76,7 @@ class Guidance:
         alpha = np.arctan2(wp_diff_y, wp_diff_x)
         R_alpha = rotation(alpha)
 
-        epsilon = R_alpha@(position-wp_n_position)
+        epsilon = np.matmul(R_alpha, (position-wp_n_position))
         s = epsilon[0] #along track error
         e = epsilon[1] #cross track error
 
@@ -83,7 +85,8 @@ class Guidance:
         psi_d = alpha + psi_r 
         self.heading_ref = psi_d 
 
-    def publish_heading_ref(self):
+    def calculateAndPublish(self, cond_wp):
+        calculatePsiSetpoint(self, cond_wp)
         self.heading_ref_pub.publish(self.heading_ref)
 
 heading_ref_calculator = Guidance()
